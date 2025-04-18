@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useConnect } from "wagmi";
 import { injected } from "wagmi/connectors";
+import Link from 'next/link';
 
 export default function Header() {
   const [hideConnectBtn, setHideConnectBtn] = useState(false);
@@ -50,6 +51,11 @@ export default function Header() {
                     className="inline-flex items-center border-b-2 border-black px-1 pt-1 text-sm font-medium text-gray-900"
                   >
                     Home
+                  </a>
+                  <a>
+                  <Link href="/about" className="text-gray-600 hover:text-gray-900">
+              About
+            </Link>
                   </a>
                 </div>
               </div>
