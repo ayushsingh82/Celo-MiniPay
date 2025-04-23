@@ -3,46 +3,64 @@ import Link from 'next/link';
 
 export default function CrossBorderPage() {
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 py-12 bg-black text-white min-h-screen">
       <h1 className="text-4xl font-bold mb-6">Cross-Border Payments</h1>
       
-      <div className="bg-blue-50 p-6 rounded-lg mb-8">
-        <h2 className="text-2xl font-semibold mb-4">How It Works</h2>
-        <ol className="list-decimal pl-6 space-y-4">
-          <li className="text-lg">
-            <span className="font-medium">Connect your wallet</span>
-            <p className="text-gray-700 mt-1">Securely connect your MiniPay wallet to our platform.</p>
-          </li>
-          <li className="text-lg">
-            <span className="font-medium">Create a payment request</span>
-            <p className="text-gray-700 mt-1">Generate a payment link or QR code to share with your international clients.</p>
-          </li>
-          <li className="text-lg">
-            <span className="font-medium">Receive payment in your preferred currency</span>
-            <p className="text-gray-700 mt-1">Your client pays in their currency, and you receive it in your local stablecoin.</p>
-          </li>
-          <li className="text-lg">
-            <span className="font-medium">Withdraw or use funds locally</span>
-            <p className="text-gray-700 mt-1">Use your funds for local payments or withdraw to your bank account.</p>
-          </li>
-        </ol>
+      <div className="bg-gray-900 p-6 rounded-lg mb-8 border border-gray-800">
+        <h2 className="text-2xl font-semibold mb-4 text-blue-400">International Payments Made Simple</h2>
+        <p className="text-lg mb-4 text-gray-300">
+          Send and receive money across borders without high fees, delays, or currency conversion headaches.
+        </p>
+        
+        <div className="grid md:grid-cols-3 gap-6 mt-8">
+          <div className="bg-gray-800 p-5 rounded-lg shadow-sm">
+            <div className="h-12 w-12 bg-blue-900 rounded-full flex items-center justify-center mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-medium mb-2 text-white">Instant Currency Conversion</h3>
+            <p className="text-gray-400">Get paid in your local currency regardless of what currency your clients use. No more waiting for bank conversions.</p>
+          </div>
+          
+          <div className="bg-gray-800 p-5 rounded-lg shadow-sm">
+            <div className="h-12 w-12 bg-blue-900 rounded-full flex items-center justify-center mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-medium mb-2 text-white">Secure Transactions</h3>
+            <p className="text-gray-400">All payments are secured by blockchain technology. No more worrying about payment fraud or chargebacks.</p>
+          </div>
+          
+          <div className="bg-gray-800 p-5 rounded-lg shadow-sm">
+            <div className="h-12 w-12 bg-blue-900 rounded-full flex items-center justify-center mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-medium mb-2 text-white">Fast Settlement</h3>
+            <p className="text-gray-400">Receive payments in minutes instead of days. No more waiting for international wire transfers to clear.</p>
+          </div>
+        </div>
       </div>
       
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Create Payment Request</h2>
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <h2 className="text-2xl font-semibold mb-4 text-blue-400">Create Payment Request</h2>
+        <div className="bg-gray-900 p-6 rounded-lg shadow-md border border-gray-800">
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Amount
               </label>
               <div className="flex">
                 <input 
                   type="number" 
-                  className="w-full border border-gray-300 rounded-l-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-700 bg-gray-800 text-white rounded-l-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="0.00"
+                  defaultValue="100"
                 />
-                <select className="border border-l-0 border-gray-300 rounded-r-md px-3 py-2 bg-gray-50">
+                <select className="border border-l-0 border-gray-700 bg-gray-800 text-white rounded-r-md px-3 py-2">
                   <option>cUSD</option>
                   <option>cEUR</option>
                   <option>cREAL</option>
@@ -51,10 +69,10 @@ export default function CrossBorderPage() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Receive in
               </label>
-              <select className="w-full border border-gray-300 rounded-md px-4 py-2 bg-white">
+              <select className="w-full border border-gray-700 bg-gray-800 text-white rounded-md px-4 py-2">
                 <option>cKES (Kenyan Shilling)</option>
                 <option>cNGN (Nigerian Naira)</option>
                 <option>cGHS (Ghanaian Cedi)</option>
@@ -64,30 +82,54 @@ export default function CrossBorderPage() {
           </div>
           
           <div className="mt-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Recipient's Wallet Address
+            </label>
+            <input 
+              type="text" 
+              className="w-full border border-gray-700 bg-gray-800 text-white rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="0x..."
+            />
+          </div>
+          
+          <div className="mt-6">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
               Payment Description
             </label>
             <input 
               type="text" 
-              className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-700 bg-gray-800 text-white rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., Design services for website"
             />
           </div>
           
-          <button className="mt-6 bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 w-full md:w-auto">
-            Generate Payment Link
-          </button>
+          <div className="mt-8 pt-6 border-t border-gray-700">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+              <div>
+                <p className="text-gray-300 mb-1">Exchange Rate</p>
+                <p className="text-white font-medium">1 cUSD = 145.32 cKES</p>
+              </div>
+              <div className="mt-4 md:mt-0">
+                <p className="text-gray-300 mb-1">Recipient Gets</p>
+                <p className="text-white font-medium text-xl">14,532 cKES</p>
+              </div>
+            </div>
+            
+            <button className="mt-4 bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 w-full md:w-auto font-medium">
+              Transfer Now
+            </button>
+          </div>
         </div>
       </div>
       
       <div className="text-center mt-8">
         <Link 
           href="/services/local-payments" 
-          className="text-blue-600 hover:underline"
+          className="text-blue-400 hover:underline"
         >
           Learn how to use your funds for local payments →
         </Link>
       </div>
     </div>
   );
-}
+} 
