@@ -52,26 +52,14 @@ export default function Header() {
                   >
                     Home
                   </a>
+              
                   <a>
-                  <Link href="/about" className="text-gray-600 hover:text-gray-900">
-              About
+                  <Link href="/list-property" className="text-gray-600 hover:text-gray-900">
+                 List 
             </Link>
                   </a>
-                  <a>
-                  <Link href="/services" className="text-gray-600 hover:text-gray-900">
-              Services
-            </Link>
-                  </a>
-                  <a>
-                  <Link href="/cross-border" className="text-gray-600 hover:text-gray-900">
-              Cross Border
-            </Link>
-                  </a>
-                  <a>
-                  <Link href="/local-payment" className="text-gray-600 hover:text-gray-900">
-              Local Payments
-            </Link>
-                  </a>
+                 
+             
                 </div>
               </div>
               <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">

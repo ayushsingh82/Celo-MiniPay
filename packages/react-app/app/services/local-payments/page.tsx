@@ -1,7 +1,56 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+
+// Dynamically import the components
+const QRScanner = dynamic(() => import('../../../components/QRScanner'), {
+  ssr: false,
+});
+
+const CameraTest = dynamic(() => import('../../../components/CameraTest'), {
+  ssr: false,
+});
 
 export default function LocalPaymentsPage() {
+  const [showScanner, setShowScanner] = useState(false);
+  const [showCameraTest, setShowCameraTest] = useState(false);
+  const [scanResult, setScanResult] = useState<string | null>(null);
+  const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState<number | null>(null);
+  const [merchantName, setMerchantName] = useState<string | null>(null);
+
+  const handleScan = (data: string) => {
+    console.log("QR code scanned:", data);
+    try {
+      // Assuming QR code contains JSON data with payment info
+      const paymentData = JSON.parse(data);
+      setMerchantName(paymentData.merchant || 'Unknown Merchant');
+      setPaymentAmount(paymentData.amount || 0);
+      setScanResult(data);
+      setShowScanner(false);
+      setShowPaymentConfirmation(true);
+    } catch (error) {
+      // If not JSON, just use the raw data
+      console.log("Error parsing QR data:", error);
+      setScanResult(data);
+      setMerchantName('Unknown Merchant');
+      setPaymentAmount(100); // Default amount for demo
+      setShowScanner(false);
+      setShowPaymentConfirmation(true);
+    }
+  };
+
+  const handleConfirmPayment = () => {
+    // Here you would process the actual payment
+    setShowPaymentConfirmation(false);
+    
+    // Add the transaction to the list (in a real app, this would come from a database)
+    // For demo purposes, we're just showing the confirmation
+    alert(`Payment of ${paymentAmount} cKES to ${merchantName} successful!`);
+  };
+
   return (
     <div className="min-h-screen bg-black">
       <div className="container mx-auto px-4 py-12 text-white">
@@ -51,9 +100,26 @@ export default function LocalPaymentsPage() {
           <div className="bg-gray-900 p-6 rounded-lg shadow-md border border-gray-800">
             <div className="text-center mb-6">
               <p className="text-lg mb-4 text-gray-300">Scan a QR code to make a payment to a local merchant or service provider.</p>
-              <button className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700">
-                Open Scanner
-              </button>
+              <div className="flex flex-col sm:flex-row justify-center gap-4">
+                <button 
+                  className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700"
+                  onClick={() => {
+                    console.log("Opening scanner...");
+                    setShowScanner(true);
+                  }}
+                >
+                  Open Scanner
+                </button>
+                <button 
+                  className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
+                  onClick={() => {
+                    console.log("Testing camera...");
+                    setShowCameraTest(true);
+                  }}
+                >
+                  Test Camera Access
+                </button>
+              </div>
             </div>
             
             <div className="border-t border-gray-700 pt-6 mt-6">
@@ -96,6 +162,66 @@ export default function LocalPaymentsPage() {
           </Link>
         </div>
       </div>
+
+      {/* QR Scanner Modal */}
+      {showScanner && (
+        <QRScanner 
+          onScan={handleScan}
+          onClose={() => {
+            console.log("Closing scanner...");
+            setShowScanner(false);
+          }}
+        />
+      )}
+
+      {/* Camera Test Modal */}
+      {showCameraTest && (
+        <CameraTest 
+          onClose={() => {
+            console.log("Closing camera test...");
+            setShowCameraTest(false);
+          }}
+        />
+      )}
+
+      {/* Payment Confirmation Modal */}
+      {showPaymentConfirmation && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+          <div className="bg-gray-900 p-6 rounded-lg max-w-md w-full border border-gray-800">
+            <h3 className="text-xl font-medium text-white mb-4">Confirm Payment</h3>
+            
+            <div className="bg-gray-800 p-4 rounded-md mb-4">
+              <div className="flex justify-between mb-2">
+                <span className="text-gray-400">Merchant:</span>
+                <span className="text-white font-medium">{merchantName}</span>
+              </div>
+              <div className="flex justify-between mb-2">
+                <span className="text-gray-400">Amount:</span>
+                <span className="text-white font-medium">{paymentAmount} cKES</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Date:</span>
+                <span className="text-white font-medium">{new Date().toLocaleString()}</span>
+              </div>
+            </div>
+            
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowPaymentConfirmation(false)}
+                className="flex-1 bg-gray-800 text-white py-2 rounded-md hover:bg-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmPayment}
+                className="flex-1 bg-green-600 text-white py-2 rounded-md hover:bg-green-700"
+              >
+                Confirm Payment
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
