@@ -18,7 +18,7 @@ export default function Home() {
     };
 
     const navigateToBuyProperty = () => {
-        router.push("/buy-property");
+        router.push("/all-property");
     };
 
     return (
