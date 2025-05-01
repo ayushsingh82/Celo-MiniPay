@@ -8,21 +8,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useWeb3 } from "@/contexts/useWeb3";
 import { useRouter } from "next/navigation";
-import { create as ipfsHttpClient } from 'ipfs-http-client';
-import { ethers } from 'ethers';
+import { createPublicClient, http, createWalletClient, custom } from 'viem';
+import { celoMainnet } from 'viem/chains';
+import { BrokerDemoAbi } from '../abi';
+import { uploadToPinata } from '../ipfsupload';
 
-// Configure IPFS client
-const projectId = process.env.NEXT_PUBLIC_INFURA_IPFS_PROJECT_ID || '';
-const projectSecret = process.env.NEXT_PUBLIC_INFURA_IPFS_PROJECT_SECRET || '';
-const projectIdAndSecret = `${projectId}:${projectSecret}`;
-
-const ipfs = ipfsHttpClient({
-  host: 'ipfs.infura.io',
-  port: 5001,
-  protocol: 'https',
-  headers: {
-    authorization: `Basic ${Buffer.from(projectIdAndSecret).toString('base64')}`,
-  },
+// Remove old IPFS configuration and replace with Viem client setup
+const publicClient = createPublicClient({
+  chain: celoMainnet,
+  transport: http('https://forno.celo.org')
 });
 
 interface Currency {
@@ -48,7 +42,6 @@ const ListPropertyPage = () => {
   
   const [formData, setFormData] = useState({
     propertyName: '',
-    description: '',
     rentPerDay: '',
     currency: 'USDC',
     imageFile: null as File | null,
@@ -89,26 +82,6 @@ const ListPropertyPage = () => {
     }
   };
 
-  const uploadToIPFS = async (file: File): Promise<string> => {
-    try {
-      setUploadProgress(10);
-      const added = await ipfs.add(
-        file,
-        {
-          progress: (prog) => {
-            const progressPercentage = Math.round((prog / file.size) * 90);
-            setUploadProgress(10 + progressPercentage);
-          }
-        }
-      );
-      setUploadProgress(100);
-      return `https://ipfs.io/ipfs/${added.path}`;
-    } catch (error) {
-      console.error('Error uploading file to IPFS:', error);
-      throw new Error('IPFS upload failed');
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -126,38 +99,45 @@ const ListPropertyPage = () => {
         throw new Error("Selected currency not found");
       }
 
-      // 1. Upload the image to IPFS
-      const ipfsImageUrl = await uploadToIPFS(formData.imageFile);
-      
-      // 2. Connect to the contract
+      // 1. Upload the image to Pinata
+      const ipfsHash = await uploadToPinata(formData.imageFile);
+      const ipfsUrl = `ipfs://${ipfsHash}`;
+
+      // 2. Create wallet client
       if (!window.ethereum) throw new Error("No crypto wallet found");
       
-      await window.ethereum.request({ method: 'eth_requestAccounts' });
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
+      const walletClient = createWalletClient({
+        chain: celoMainnet,
+        transport: custom(window.ethereum)
+      });
+
+      // Get the user's address
+      const [address] = await walletClient.requestAddresses();
+
+      // 3. Prepare contract data
+      const contractAddress = '0xe9980A142D5D3610a4a32693d4325b563DFe6404' as `0x${string}`;
       
-      // Get the contract from your context
-      const contract = new ethers.Contract(
-        process.env.NEXT_PUBLIC_RENT_CONTRACT_ADDRESS || '',
-        [
-          "function listProperty(string memory _ownerName, address _stablecoinAddress, uint256 _dailyRent, string memory _ipfsImageUrl) external returns (uint256)"
+      // 4. Convert rent to wei (assuming 18 decimals)
+      const rentInWei = BigInt(parseFloat(formData.rentPerDay) * 1e18);
+
+      // 5. Call the listProperty function with correct parameters
+      const { request } = await publicClient.simulateContract({
+        address: contractAddress,
+        abi: BrokerDemoAbi,
+        functionName: 'listProperty',
+        args: [
+          formData.propertyName,           // _ownerName
+          selectedCurrency.address as `0x${string}`,  // _stablecoinAddress
+          rentInWei,                       // _dailyRent
+          ipfsUrl                          // _ipfsImageUrl
         ],
-        signer
-      );
+        account: address,
+      });
+
+      const hash = await walletClient.writeContract(request);
       
-      // 3. Convert rent to wei (assuming 18 decimals)
-      const rentInWei = ethers.utils.parseEther(formData.rentPerDay);
-      
-      // 4. Call the listProperty function
-      const tx = await contract.listProperty(
-        formData.propertyName, // Using property name as owner name
-        selectedCurrency.address,
-        rentInWei,
-        ipfsImageUrl
-      );
-      
-      // 5. Wait for the transaction to be mined
-      await tx.wait();
+      // 6. Wait for the transaction to be mined
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
       
       // Success! Redirect to the properties page
       alert("Property listed successfully!");
@@ -222,21 +202,6 @@ const ListPropertyPage = () => {
             />
           </div>
           
-          {/* Property Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea 
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              placeholder="Describe your property"
-              rows={4}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
-          
           {/* Rent Per Day */}
           <div className="space-y-2">
             <Label htmlFor="rentPerDay">Rent Per Day</Label>
@@ -263,11 +228,16 @@ const ListPropertyPage = () => {
               defaultValue="USDC"
               disabled={isSubmitting}
             >
-              {currencies.map((currency) => (
-                <SelectItem key={currency.symbol} value={currency.symbol}>
-                  {currency.name} ({currency.symbol})
-                </SelectItem>
-              ))}
+              <SelectTrigger>
+                <SelectValue placeholder="Select currency" />
+              </SelectTrigger>
+              <SelectContent>
+                {currencies.map((currency) => (
+                  <SelectItem key={currency.symbol} value={currency.symbol}>
+                    {currency.name} ({currency.symbol})
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
           
