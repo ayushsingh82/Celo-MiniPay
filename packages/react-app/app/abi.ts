@@ -1,4 +1,4 @@
-[
+export const BrokerDemoAbi = [
 	{
 		"inputs": [],
 		"stateMutability": "nonpayable",

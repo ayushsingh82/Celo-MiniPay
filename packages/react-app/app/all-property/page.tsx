@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useWeb3 } from '@/contexts/useWeb3';
-import { Button } from '@/components/ui/button';
+import { createPublicClient, http } from 'viem'
+import { celoMainnet } from 'viem/chains'
+import { BrokerDemoAbi } from '../abi';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 interface Property {
   id: number;
@@ -20,10 +22,14 @@ interface Property {
 const AllPropertiesPage = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
-  const { address, contract } = useWeb3();
+  const [error, setError] = useState('');
   const router = useRouter();
 
-  // Map of stablecoin addresses to their symbols
+  const publicClient = createPublicClient({
+    chain: celoMainnet,
+    transport: http('https://forno.celo.org')
+  });
+
   const currencyMap: { [key: string]: string } = {
     '0xcebA9300f2b948710d2653dD7B07f33A8B32118C': 'USDC',
     '0x765DE816845861e75A25fCA122bb6898B8B1282a': 'cUSD',
@@ -35,50 +41,35 @@ const AllPropertiesPage = () => {
 
   useEffect(() => {
     const fetchProperties = async () => {
-      if (!contract) return;
-      
       try {
-        // Get the total number of properties
-        const totalProperties = await contract.getPropertyCount();
-        const propertiesArray: Property[] = [];
-        
-        // Fetch details for each property
-        for (let i = 1; i <= totalProperties; i++) {
-          try {
-            const [owner, ownerName, stablecoinAddress, dailyRent, ipfsImageUrl, isActive] = 
-              await contract.getPropertyDetails(i);
-            
-            // Convert dailyRent from BigInt to string for display
-            const rentInEther = (Number(dailyRent) / 1e18).toString();
-            
-            // Get currency symbol from the map or use address if not found
-            const currencySymbol = currencyMap[stablecoinAddress.toLowerCase()] || 'Unknown';
-            
-            propertiesArray.push({
-              id: i,
-              owner,
-              ownerName,
-              stablecoinAddress,
-              dailyRent: rentInEther,
-              ipfsImageUrl,
-              isActive,
-              currencySymbol
-            });
-          } catch (error) {
-            console.error(`Error fetching property ${i}:`, error);
-          }
-        }
+        const result = await publicClient.readContract({
+          address: '0xe9980A142D5D3610a4a32693d4325b563DFe6404',
+          abi: BrokerDemoAbi,
+          functionName: 'getAllOwnersDetails',
+        });
+
+        const propertiesArray = result.map((property: any) => ({
+          id: Number(property.propertyId),
+          owner: property.owner,
+          ownerName: property.ownerName,
+          stablecoinAddress: property.stablecoinAddress,
+          dailyRent: (Number(property.dailyRent) / 1e18).toString(),
+          ipfsImageUrl: property.ipfsImageUrl,
+          isActive: property.isActive,
+          currencySymbol: currencyMap[property.stablecoinAddress.toLowerCase()] || 'Unknown'
+        }));
         
         setProperties(propertiesArray);
-      } catch (error) {
-        console.error("Error fetching properties:", error);
+      } catch (err) {
+        console.error('Error fetching properties:', err);
+        setError('Failed to load properties. Please try again.');
       } finally {
         setLoading(false);
       }
     };
 
     fetchProperties();
-  }, [contract]);
+  }, []);
 
   const handleBookProperty = (propertyId: number) => {
     router.push(`/book-property/${propertyId}`);
@@ -88,6 +79,14 @@ const AllPropertiesPage = () => {
     return (
       <div className="flex justify-center items-center min-h-screen bg-white text-black">
         <div className="text-xl font-bold">Loading properties...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-white text-black">
+        <div className="text-xl font-bold text-red-500">{error}</div>
       </div>
     );
   }
